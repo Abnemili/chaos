@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 14:35:39 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/03 14:33:54 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/11 15:26:25 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,7 @@ void	free_lexer(t_lexer *lexer)
 		free(lexer);
 	}
 }
+
 void	cleanup_var_expansion(char *name, char *value, int is_special)
 {
 	if (is_special)

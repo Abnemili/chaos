@@ -1,20 +1,19 @@
-check_syntax :
-    --> check_syntax.c      : done
-    --> redirection_error.c : done
-    --> validate_syntax.c   : forbiden use and line to loong 
-    --> helper.c            : done
-    --> syntax_check_utils.c : done
+heck_syntax :
+    --> check_syntax.c      	: done
+    --> redirection_error.c 	: done
+    --> validate_syntax.c   	: forbiden use and line to loong 
+    --> helper.c            	: done
+    --> syntax_check_utils.c 	: done
 
-clean up :                  // done for norminette 
-    --> ft+clean_up
 
-execution :
-    --> exec_env           globale variabele 
+clean up :                  
+    --> ft+clean_up		: done
+
 
 expande :
-    --> env_var
-    --> env_var_utils		: globake variable problem
-    --> rempve_quote
+    --> expande_tokens.c	: global var && assimnet control 
+    --> expande_utils.c 	: global var & assigment control 
+    --> expande_env.c 		: globale varibale 
 
 includes : 
     --> minishell.h 

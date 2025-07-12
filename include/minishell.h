@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 16:36:40 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/03 14:44:18 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/12 13:53:33 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ typedef struct s_expand_data
 	int			exit_code;
 }				t_expand_data;
 // extern t_env	*g_envp;
-
 
 typedef struct s_cmd
 {
@@ -212,7 +211,8 @@ int			validate_redirection_target(t_elem *next);
 int			validate_redirection(t_elem *curr);
 t_elem		*skip_whitespace(t_elem *token);
 int			update_quote_state(enum e_type type, enum e_state *state);
-int			process_token(t_elem *curr, enum e_state *state, t_elem **prev_significant);
+int			process_token(t_elem *curr, enum e_state *state, t_elem
+				**prev_significant);
 
 /* Error handling */
 char		*get_error_token(t_elem *curr);
@@ -232,7 +232,8 @@ int			parse_arguments(t_data *data, t_elem **current, t_cmd *cmd);
 /* Redirection handling */
 int			handle_redirection_in(t_data *data, t_elem **current, t_cmd *cmd);
 int			handle_redirection_out(t_data *data, t_elem **current, t_cmd *cmd);
-int			handle_redirection_append(t_data *data, t_elem **current, t_cmd *cmd);
+int			handle_redirection_append(t_data *data, t_elem
+				**current, t_cmd *cmd);
 int			handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd);
 int			process_redirection(t_data *data, t_elem **current, t_cmd *cmd);
 
@@ -327,7 +328,7 @@ char	*get_env_value(char *name);
 void	expand_tokens(t_elem *token, int exit_code);
 void	handle_word_token(t_elem *curr, int exit_code);
 char	*expand_token_content(char *content, int exit_code, int should_expand);
-int	process_expansion_loop(char *content, t_expand_data *data);
-int	process_regular_char(char *content, int *i, t_expand_data *data);
+int		process_expansion_loop(char *content, t_expand_data *data);
+int		process_regular_char(char *content, int *i, t_expand_data *data);
 
 #endif

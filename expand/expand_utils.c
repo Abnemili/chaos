@@ -33,7 +33,7 @@ char	*remove_quotes(char *content, enum e_type quote_type)
 	return (ft_strdup(content));
 }
 
- void	handle_quoted_token(t_elem *curr, int exit_code)
+void	handle_quoted_token(t_elem *curr, int exit_code)
 {
 	char	*unq;
 	char	*exp;

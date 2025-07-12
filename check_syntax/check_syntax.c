@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 14:17:58 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/01 14:18:52 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/12 20:14:05 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,8 @@ char	*get_sredir_error(t_elem *curr)
 	{
 		if (curr->type == REDIR_OUT)
 		{
-			return (">");
+			return (">");// Map enum e_type 0to string
+			
 		}
 		else
 		{
@@ -79,17 +80,6 @@ char	*get_sredir_error(t_elem *curr)
 	}
 	return ("newline");
 }
-
-
-
-
-
-
-
-
-
-
-// Map enum e_type 0to string
 const char	*get_type_str(enum e_type type)
 {
 	switch (type)
