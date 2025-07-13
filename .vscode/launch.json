@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/mac/Desktop/minishell/parsing_part/expand",
-      "program": "/Users/mac/Desktop/minishell/parsing_part/expand/build/Debug/outDebug"
+      "cwd": "/Users/mac/Desktop/chaos",
+      "program": "/Users/mac/Desktop/chaos/build/Debug/outDebug"
     }
   ]
 }

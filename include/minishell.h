@@ -250,6 +250,7 @@ int			process_word_token(t_data *data, t_elem **current, t_cmd *cmd, int *arg_in
 
 /* Main expansion functions */
 void		expand_tokens(t_elem *token, int exit_code);
+char		*expand_merged_token(char *content, int exit_code);
 char		*expand_token_content(char *content, int exit_code, int should_expand);
 char		*expand_exit_status(int exit_code);
 char		*extract_var_name(char *str, int start, int *end);

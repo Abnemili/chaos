@@ -62,18 +62,23 @@ char	*expand_token_content(char *content, int exit_code, int should_expand)
 	res[len] = '\0';
 	return (res);
 }
-
-void	handle_word_token(t_elem *curr, int exit_code)
+/* minishell/expand_word.c */
+void    handle_word_token(t_elem *curr, int exit_code)
 {
-	char	*exp;
+    int   should_expand;
+    char *exp;
 
-	exp = expand_token_content(curr->content, exit_code, 1);
-	if (exp)
-	{
-		free(curr->content);
-		curr->content = exp;
-		curr->type = WORD;
-	}
+    /* NEVER expand inside a single‑quoted token */
+    should_expand = (curr->state != IN_QUOTE);     /*  ✅ new rule  */
+
+    exp = expand_token_content(curr->content, exit_code, should_expand);
+    if (exp)
+    {
+        free(curr->content);
+        curr->content = exp;
+        curr->type = WORD;
+        /* keep curr->state unchanged – it may still be IN_DQUOTE or GENERAL */
+    }
 }
 
 void	expand_tokens(t_elem *token, int exit_code)
