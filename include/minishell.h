@@ -306,6 +306,7 @@ void		print_tokens(t_elem *head);
 void		print_cmd_debug(t_cmd *cmd, int cmd_num);
 void		print_pipeline_debug(t_data *data);
 void		print_pipeline_compact(t_data *data);
+int			ft_strcmp(const char *s1, const char *s2);
 
 /* ========================================================================== */
 /*                          MAIN PROCESSING                                  */
