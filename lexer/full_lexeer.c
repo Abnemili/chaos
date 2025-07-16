@@ -1,4 +1,3 @@
-
 #include "minishell.h"
 
 void	init_data(t_data *data, char *input)
@@ -96,9 +95,6 @@ t_elem	*create_token(char *content, enum e_type type, enum e_state state)
 	return (token);
 }
 
-
-#include "minishell.h"
-
 int	process_single_char_token(t_lexer *lexer, t_elem **head, char c, enum e_type type)
 {
 	char	*content;
@@ -123,11 +119,11 @@ int	process_special_chars(t_lexer *lexer, t_elem **head)
 	current = lexer->input[lexer->position];
 	if (current == '$' && lexer->input[lexer->position + 1] == '?')
 		return (process_exit_status(lexer, head));
-	else if (current == '$')
-	{
-		lexer->position = handle_env(lexer->input, &(lexer->position), head);
-		return (lexer->position != -1);
-	}
+	// else if (current == '$')
+	// {
+	// 	lexer->position = handle_env(lexer->input, &(lexer->position), head);
+	// 	return (lexer->position != -1);
+	// }
 	else if (current == '|')
 	{
 		if (!process_single_char_token(lexer, head, current, PIPE_LINE))
@@ -182,9 +178,6 @@ int	process_escape_token(t_lexer *lexer, t_elem **head)
 	lexer->position += 2;
 	return (1);
 }
-
-
-#include "minishell.h"
 
 void	handle_quote(const char *input, int *i, t_elem **head)
 {
@@ -292,9 +285,6 @@ int	handle_env(const char *input, int *i, t_elem **head)
 	return (*i);
 }
 
-
-#include "minishell.h"
-
 int	create_content_token(const char *input, int start, int end,
 							t_elem **head, enum e_state state)
 {
@@ -333,7 +323,6 @@ int	handle_space(const char *input, int *i, t_elem **head)
 	append_token(head, token);
 	return (*i);
 }
-
 int	handle_word(const char *input, int i, t_elem **head)
 {
 	int		start;
@@ -359,30 +348,31 @@ int	handle_word(const char *input, int i, t_elem **head)
 	return (i);
 }
 
-void	merge_adjacent_word_tokens(t_elem **head)
+/* minishell/lexer_merge.c */
+void    merge_adjacent_word_tokens(t_elem **head)
 {
-	t_elem	*curr;
-	t_elem	*next;
-	char	*merged;
+    t_elem  *curr;
+    t_elem  *next;
+    char    *merged;
 
-	curr = *head;
-	while (curr && curr->next)
-	{
-		next = curr->next;
-		if (curr->type == WORD && next->type == WORD &&
-			((curr->state == GENERAL || curr->state == IN_QUOTE || curr->state == IN_DQUOTE) &&
-			 (next->state == GENERAL || next->state == IN_QUOTE || next->state == IN_DQUOTE)))
-		{
-			merged = ft_strjoin(curr->content, next->content);
-			if (!merged)
-				return ;
-			free(curr->content);
-			curr->content = merged;
-			curr->next = next->next;
-			free(next->content);
-			free(next);
-			continue ;
-		}
-		curr = curr->next;
-	}
+    curr = *head;
+    while (curr && curr->next)
+    {
+        next = curr->next;
+        /* ――― merge only when BOTH tokens have the **same** quote context ――― */
+        if (curr->type == WORD && next->type == WORD &&
+            curr->state == next->state)                /*  ✅ key change  */
+        {
+            merged = ft_strjoin(curr->content, next->content);
+            if (!merged)
+                return ;
+            free(curr->content);
+            curr->content = merged;
+            curr->next = next->next;
+            free(next->content);
+            free(next);
+            continue;          /* stay on current node in case there’s another WORD */
+        }
+        curr = curr->next;
+    }
 }

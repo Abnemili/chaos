@@ -1,4 +1,3 @@
-
 #include "minishell.h"
 
 extern t_env	*g_envp;
@@ -64,6 +63,7 @@ char	*expand_exit_status(int exit_code)
 	return (ft_itoa(exit_code));
 }
 
+extern t_env	*g_envp;
 
 int	process_regular_char(char *content, int *i, t_expand_data *data)
 {
@@ -113,19 +113,41 @@ char	*expand_token_content(char *content, int exit_code, int should_expand)
 	res[len] = '\0';
 	return (res);
 }
-
-void	handle_word_token(t_elem *curr, int exit_code)
+/* minishell/expand_word.c */
+void    handle_word_token(t_elem *curr, int exit_code)
 {
-	char	*exp;
+    int   should_expand;
+    char *exp;
 
-	exp = expand_token_content(curr->content, exit_code, 1);
-	if (exp)
+    /* NEVER expand inside a single‑quoted token */
+    should_expand = (curr->state != IN_QUOTE);     /*  ✅ new rule  */
+
+    exp = expand_token_content(curr->content, exit_code, should_expand);
+    if (exp)
+    {
+        free(curr->content);
+        curr->content = exp;
+        curr->type = WORD;
+        /* keep curr->state unchanged – it may still be IN_DQUOTE or GENERAL */
+    }
+}
+
+void	expand_tokens(t_elem *token, int exit_code)
+{
+	t_elem	*curr;
+
+	curr = token;
+	while (curr)
 	{
-		free(curr->content);
-		curr->content = exp;
-		curr->type = WORD;
+		if (curr->type == QUOTE || curr->type == DQUOTE)
+			handle_quoted_token(curr, exit_code);
+		else if ((curr->type == WORD || curr->type == ENV)
+			&& curr->state != IN_QUOTE)
+			handle_word_token(curr, exit_code);
+		curr = curr->next;
 	}
 }
+
 
 char	*remove_quotes(char *content, enum e_type quote_type)
 {

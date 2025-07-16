@@ -1,42 +1,74 @@
+
 #include "minishell.h"
 
-int handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd)
+static int	create_heredoc_pipe(int pipe_fd[2])
 {
-    (void)data;
-    int     pipe_fd[2];
-    char    *line;
-    char    *delimiter;
+	if (pipe(pipe_fd) == -1)
+	{
+		perror("minishell: pipe");
+		return (0);
+	}
+	return (1);
+}
 
-    *current = (*current)->next;
-    skip_whitespace_ptr(current);
-    if (!*current)
-        return (0);
-    delimiter = (*current)->content;
-    if (pipe(pipe_fd) == -1) // open the arr discriptor
-        return (0);
-    while (1)
-    {
-        write (STDOUT_FILENO, "> ", 2);
-        line = get_next_line(STDIN_FILENO);
-       if (!line)
-            break;
-        if (line[ft_strlen(line) - 1] == '\n')
-            line[ft_strlen(line) - 1 ] = '\0'; //  set the null , to detect the dilimiter
-        if (strcmp(line, delimiter) == 0)
-        {
-            free(line);
-            break;
-        }
-        write(pipe_fd[1], line, ft_strlen(line));
-        write (pipe_fd[1], "\n", 1);
-        free(line);
-    }
-    close(pipe_fd[1]);
-    if (cmd->in_file != STDIN_FILENO)
-        close(cmd->in_file);
-    cmd->in_file = pipe_fd[0];
-    *current = (*current)->next;
-    return (1);
+static void	write_to_pipe(int pipe_fd, const char *line)
+{
+	write(pipe_fd, line, ft_strlen(line));
+	write(pipe_fd, "\n", 1);
+}
+
+static int	read_heredoc_lines(const char *delimiter, int pipe_fd)
+{
+	char	*line;
+	int		len;
+
+	while (1)
+	{
+		write(1, "> ", 2);
+		line = get_next_line(STDIN_FILENO);
+		if (!line)
+		{
+			ft_putstr_fd("minishell: warning: here-doc delimited by EOF\n", 2);
+			break ;
+		}
+		len = ft_strlen(line);
+		if (len > 0 && line[len - 1] == '\n')
+			line[len - 1] = '\0';
+		if (ft_strcmp(line, delimiter) == 0)
+		{
+			free(line);
+			break ;
+		}
+		write_to_pipe(pipe_fd, line);
+		free(line);
+	}
+	return (1);
+}
+
+int	handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd)
+{
+	int		pipe_fd[2];
+	char	*delimiter;
+
+	(void)data;
+	*current = (*current)->next;
+	skip_whitespace_ptr(current);
+	if (!*current || (*current)->type != WORD)
+		return (0);
+	delimiter = (*current)->content;
+	if (!create_heredoc_pipe(pipe_fd))
+		return (0);
+	if (!read_heredoc_lines(delimiter, pipe_fd[1]))
+	{
+		close(pipe_fd[1]);
+		return (0);
+	}
+	close(pipe_fd[1]);
+	if (cmd->in_file != STDIN_FILENO)
+		close(cmd->in_file);
+	cmd->in_file = pipe_fd[0];
+	*current = (*current)->next;
+	return (1);
 }
 
 
@@ -215,6 +247,9 @@ int	is_redirection_target(t_elem *elem, t_elem *start)
 	return (prev->type == REDIR_IN || prev->type == REDIR_OUT ||
 		prev->type == DREDIR_OUT || prev->type == HERE_DOC);
 }
+
+
+
 int	parse_pipeline(t_data *data)
 {
 	t_elem	*current;
@@ -294,11 +329,49 @@ int	parse_arguments(t_data *data, t_elem **current, t_cmd *cmd)
 		if (!*current || (*current)->type == PIPE_LINE)
 			break;
 		// Handle both WORD and ENV tokens as arguments
-		if ((*current)->type == WORD || (*current)->type == ENV)
+		// 
+		else if ((*current)->type == WORD || (*current)->type == ENV)
+{
+	char *merged = ft_strdup((*current)->content);
+	if (!merged)
+		return (0);
+
+	t_elem *start = *current;
+	t_elem *next = (*current)->next;
+
+	while (next && (next->type == WORD || next->type == ENV))
+	{
+		// Check if there is whitespace between current and next
+		t_elem *tmp = start->next;
+		int separated_by_whitespace = 0;
+		while (tmp && tmp != next)
 		{
-			if (!process_word_token(data, current, cmd, &arg_index))
-				return (0);
+			if (tmp->type == WHITE_SPACE)
+			{
+				separated_by_whitespace = 1;
+				break;
+			}
+			tmp = tmp->next;
 		}
+		if (separated_by_whitespace)
+			break;
+
+		char *tmp_str = ft_strjoin(merged, next->content);
+		free(merged);
+		if (!tmp_str)
+			return (0);
+		merged = tmp_str;
+
+		start = next;
+		next = next->next;
+	}
+
+	if (cmd->full_cmd)
+		cmd->full_cmd[arg_index++] = merged;
+
+	*current = start->next;
+}
+
 		else if (!process_redirection(data, current, cmd))
 			return (0);
 	}
