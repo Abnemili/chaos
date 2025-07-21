@@ -21,12 +21,14 @@ SRC = main.c \
       lexer/lexer_special_handler.c \
       lexer/lexer_utils.c \
       lexer/lexer_word_handler.c \
-      check_syntax/syntax_check_utils.c \
-      check_syntax/helper.c \
-      check_syntax/check_syntax.c \
-      check_syntax/initial_syntax.c \
+      \
+      check_syntax/error_mssg.c \
+      check_syntax/quote_handling.c \
+      check_syntax/string_utils.c \
+      check_syntax/syntax_check.c \
       check_syntax/validate_syntax.c \
-      check_syntax/redirection_error.c \
+      check_syntax/syntax_utils.c \
+      \
       parser/handle_redirections.c \
       parser/handle_heredoc.c \
       parser/parser_utils.c \

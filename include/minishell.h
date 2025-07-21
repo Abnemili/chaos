@@ -199,7 +199,7 @@ int			check_unclosed_quotes_in_tokens(t_elem *tokens);
 /* Syntax checking main functions */
 int			check_syntax(t_elem *token);
 int			check_initial_syntax(t_elem *curr);
-// int			is_empty(char c);
+int			is_empty(char c);
 // int 		check_empty_line(t_data *data);
 int			check_final_syntax(enum e_state state, t_elem *prev_significant);
 

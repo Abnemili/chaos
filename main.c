@@ -34,7 +34,7 @@ int main(int ac, char **av, char **env)
     // done
     while (1)
     {
-        input = readline("chaos $>");
+        input = readline("minishell $> ");
         if (!input)
         {
             printf("exit\n");

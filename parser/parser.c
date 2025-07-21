@@ -12,6 +12,17 @@
 
 #include "minishell.h"
 
+int	parse_input(t_elem *token, char *input, t_lexer *lexer)
+{
+	(void)lexer;
+	
+	if (!check_unclosed_quotes_in_input(input))
+		return (0);
+	if (!check_syntax(token))
+		return (0);
+	// print_tokens(token);
+	return (1);
+}
 
 int	parse_pipeline(t_data *data)
 {
