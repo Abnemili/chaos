@@ -17,6 +17,7 @@ RESET = \033[0m
 # Source files
 SRC = main.c \
       debugin.c \
+      \
       lexer/lexer_init.c \
       lexer/lexer_special_handler.c \
       lexer/lexer_utils.c \
@@ -33,8 +34,11 @@ SRC = main.c \
       parser/handle_heredoc.c \
       parser/parser_utils.c \
       parser/parser.c \
+      \
       clean_up/ft_clean.c \
+      \
       execution/exec_env.c \
+      \
       expand/expand_token.c \
       expand/expand_env.c \
       expand/expand_utils.c 

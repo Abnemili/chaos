@@ -6,25 +6,23 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 10:21:14 by abnemili          #+#    #+#             */
-/*   Updated: 2025/06/29 00:46:46 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 14:24:22 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-// Helper functions for the parser process
-
 void	skip_whitespace_ptr(t_elem **current)
 {
 	if (!current)
-		return;
+		return ;
 	while (*current && (*current)->type == WHITE_SPACE)
 		*current = (*current)->next;
 }
 
 int	count_command_args(t_elem *start)
 {
-	int	count;
+	int		count;
 	t_elem	*current;
 
 	count = 0;
@@ -41,7 +39,6 @@ int	count_command_args(t_elem *start)
 	return (count);
 }
 
-// Fixed memory allocation with proper cleanup
 int	allocate_cmd_args(t_cmd *cmd, int arg_count)
 {
 	if (!cmd)
@@ -58,8 +55,8 @@ int	allocate_cmd_args(t_cmd *cmd, int arg_count)
 	return (1);
 }
 
-
-int	process_word_token(t_data *data, t_elem **current, t_cmd *cmd, int *arg_index)
+int	process_word_token(t_data *data, t_elem **current, t_cmd *cmd,
+		int *arg_index)
 {
 	if (!data || !current || !*current || !cmd || !arg_index)
 		return (0);
@@ -86,13 +83,13 @@ int	is_redirection_target(t_elem *elem, t_elem *start)
 	while (current)
 	{
 		if (current == elem)
-			break;
+			break ;
 		if (current->type != WHITE_SPACE)
 			prev = current;
 		current = current->next;
 	}
 	if (!current || !prev)
 		return (0);
-	return (prev->type == REDIR_IN || prev->type == REDIR_OUT ||
-		prev->type == DREDIR_OUT || prev->type == HERE_DOC);
+	return (prev->type == REDIR_IN || prev->type == REDIR_OUT
+		|| prev->type == DREDIR_OUT || prev->type == HERE_DOC);
 }

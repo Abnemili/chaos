@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/22 18:41:02 by abnemili          #+#    #+#             */
-/*   Updated: 2025/06/26 22:41:53 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 13:58:16 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,11 +51,13 @@ t_elem	*init_tokens(t_lexer *lexer)
 	{
 		current = lexer->input[lexer->position];
 		if (current == ' ' || current == '\t')
-			lexer->position = handle_space(lexer->input, &(lexer->position), &head);
+			lexer->position = handle_space(lexer->input, &(lexer->position),
+					&head);
 		else if (current == '\'' || current == '\"')
 			handle_quote(lexer->input, &(lexer->position), &head);
 		else if (current == '>' || current == '<')
-			lexer->position = handle_redirections(lexer->input, lexer->position, &head);
+			lexer->position = handle_redirections(lexer->input, lexer->position,
+					&head);
 		else if (process_special_chars(lexer, &head))
 			continue ;
 		else

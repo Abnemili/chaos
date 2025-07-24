@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   redirection_error.c                                :+:      :+:    :+:   */
+/*   error_mssg.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 23:35:03 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/01 14:18:01 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 11:51:13 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,14 @@ char	*get_sredir_error(t_elem *curr)
 	next = skip_whitespace(curr->next);
 	if (!next || next->type != curr->type)
 		return ("newline");
-	
 	third = skip_whitespace(next->next);
 	if (third && third->type == curr->type)
-		return (curr->type == REDIR_OUT ? ">" : "<");
+	{
+		if (curr->type == REDIR_OUT)
+			return (">");
+		else
+			return ("<");
+	}
 	return ("newline");
 }
 
@@ -47,9 +51,13 @@ char	*get_dredir_error(t_elem *curr)
 	next = skip_whitespace(curr->next);
 	if (!next || !is_redirection(next->type))
 		return ("newline");
-	
 	if (next->type == curr->type)
-		return (curr->type == DREDIR_OUT ? ">>" : "<<");
+	{
+		if (curr->type == DREDIR_OUT)
+			return (">>");
+		else
+			return ("<<");
+	}
 	if (next->type == REDIR_OUT)
 		return (">");
 	if (next->type == REDIR_IN)

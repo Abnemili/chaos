@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:24:50 by abnemili          #+#    #+#             */
-/*   Updated: 2025/06/29 11:37:06 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 14:22:44 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,10 @@
 int	parse_input(t_elem *token, char *input, t_lexer *lexer)
 {
 	(void)lexer;
-	
 	if (!check_unclosed_quotes_in_input(input))
 		return (0);
 	if (!check_syntax(token))
 		return (0);
-	// print_tokens(token);
 	return (1);
 }
 
@@ -39,14 +37,14 @@ int	parse_pipeline(t_data *data)
 	{
 		skip_whitespace_ptr(&current);
 		if (!current)
-			break;
+			break ;
 		if (current->type == PIPE_LINE)
 		{
 			current = current->next;
 			skip_whitespace_ptr(&current);
 			if (!current)
 				return (0);
-			continue;
+			continue ;
 		}
 		current_cmd = parse_command(data, &current);
 		if (!current_cmd)
@@ -63,7 +61,6 @@ int	parse_pipeline(t_data *data)
 	return (data->head != NULL);
 }
 
-// Fixed memory cleanup on failure
 t_cmd	*parse_command(t_data *data, t_elem **current)
 {
 	t_cmd	*cmd;
@@ -85,11 +82,16 @@ t_cmd	*parse_command(t_data *data, t_elem **current)
 	return (cmd);
 }
 
-// Fixed argument parsing with better error handling
 int	parse_arguments(t_data *data, t_elem **current, t_cmd *cmd)
 {
-	int	arg_count;
-	int	arg_index;
+	int		arg_count;
+	int		arg_index;
+	char	*merged;
+	t_elem	*start;
+	t_elem	*next;
+	t_elem	*tmp;
+	int		separated_by_whitespace;
+	char	*tmp_str;
 
 	if (!data || !current || !cmd)
 		return (0);
@@ -101,58 +103,47 @@ int	parse_arguments(t_data *data, t_elem **current, t_cmd *cmd)
 	{
 		skip_whitespace_ptr(current);
 		if (!*current || (*current)->type == PIPE_LINE)
-			break;
-		// Handle both WORD and ENV tokens as arguments
-		// 
+			break ;
 		else if ((*current)->type == WORD || (*current)->type == ENV)
-{
-	char *merged = ft_strdup((*current)->content);
-	if (!merged)
-		return (0);
-
-	t_elem *start = *current;
-	t_elem *next = (*current)->next;
-
-	while (next && (next->type == WORD || next->type == ENV))
-	{
-		// Check if there is whitespace between current and next
-		t_elem *tmp = start->next;
-		int separated_by_whitespace = 0;
-		while (tmp && tmp != next)
 		{
-			if (tmp->type == WHITE_SPACE)
+			merged = ft_strdup((*current)->content);
+			if (!merged)
+				return (0);
+			start = *current;
+			next = (*current)->next;
+			while (next && (next->type == WORD || next->type == ENV))
 			{
-				separated_by_whitespace = 1;
-				break;
+				tmp = start->next;
+				separated_by_whitespace = 0;
+				while (tmp && tmp != next)
+				{
+					if (tmp->type == WHITE_SPACE)
+					{
+						separated_by_whitespace = 1;
+						break ;
+					}
+					tmp = tmp->next;
+				}
+				if (separated_by_whitespace)
+					break ;
+				tmp_str = ft_strjoin(merged, next->content);
+				free(merged);
+				if (!tmp_str)
+					return (0);
+				merged = tmp_str;
+				start = next;
+				next = next->next;
 			}
-			tmp = tmp->next;
+			if (cmd->full_cmd)
+				cmd->full_cmd[arg_index++] = merged;
+			*current = start->next;
 		}
-		if (separated_by_whitespace)
-			break;
-
-		char *tmp_str = ft_strjoin(merged, next->content);
-		free(merged);
-		if (!tmp_str)
-			return (0);
-		merged = tmp_str;
-
-		start = next;
-		next = next->next;
-	}
-
-	if (cmd->full_cmd)
-		cmd->full_cmd[arg_index++] = merged;
-
-	*current = start->next;
-}
-
 		else if (!process_redirection(data, current, cmd))
 			return (0);
 	}
 	return (1);
 }
 
-// Simplified redirection processing
 int	process_redirection(t_data *data, t_elem **current, t_cmd *cmd)
 {
 	if (!data || !current || !*current || !cmd)

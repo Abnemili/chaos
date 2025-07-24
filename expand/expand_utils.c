@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 11:41:15 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/03 14:41:59 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 14:10:22 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,8 +73,8 @@ int	process_dollar_expansion(char *content, int *i, t_expand_data *data)
 		*i = var_end;
 		return (1);
 	}
-	if (!(*(data->res) = realloc_result(*(data->res), data->max, *(data->len)
-				+ 2)))
+	*(data->res) = realloc_result(*(data->res), data->max, *(data->len) + 2);
+	if (!(*(data->res)))
 		return (0);
 	(*(data->res))[(*(data->len))++] = '$';
 	return (1);
@@ -95,6 +95,7 @@ char	*realloc_result(char *result, int *max_size, int needed)
 	}
 	return (new_result);
 }
+
 int	handle_special_var(char *name, int exit_code, char **value)
 {
 	if (strcmp(name, "?") == 0)

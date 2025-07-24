@@ -6,13 +6,14 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/15 15:07:59 by abnemili          #+#    #+#             */
-/*   Updated: 2025/06/27 13:42:53 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 14:02:24 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	process_single_char_token(t_lexer *lexer, t_elem **head, char c, enum e_type type)
+int	process_single_char_token(t_lexer *lexer, t_elem **head, char c,
+		enum e_type type)
 {
 	char	*content;
 	t_elem	*token;
@@ -36,11 +37,6 @@ int	process_special_chars(t_lexer *lexer, t_elem **head)
 	current = lexer->input[lexer->position];
 	if (current == '$' && lexer->input[lexer->position + 1] == '?')
 		return (process_exit_status(lexer, head));
-	// else if (current == '$')
-	// {
-	// 	lexer->position = handle_env(lexer->input, &(lexer->position), head);
-	// 	return (lexer->position != -1);
-	// }
 	else if (current == '|')
 	{
 		if (!process_single_char_token(lexer, head, current, PIPE_LINE))

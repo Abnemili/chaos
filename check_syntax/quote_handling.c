@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   syntax_check_utils.c                               :+:      :+:    :+:   */
+/*   quote_handling.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 14:17:58 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/01 14:25:30 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 12:12:19 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,39 @@
 int	update_quote_state(enum e_type type, enum e_state *state)
 {
 	if (type == QUOTE && *state != IN_DQUOTE)
-		*state = (*state == IN_QUOTE) ? GENERAL : IN_QUOTE;
+	{
+		if (*state == IN_QUOTE)
+			*state = GENERAL;
+		else
+			*state = IN_QUOTE;
+	}
 	else if (type == DQUOTE && *state != IN_QUOTE)
-		*state = (*state == IN_DQUOTE) ? GENERAL : IN_DQUOTE;
+	{
+		if (*state == IN_DQUOTE)
+			*state = GENERAL;
+		else
+			*state = IN_DQUOTE;
+	}
 	return (1);
+}
+
+int	toggle_quote_state(char c, char *in_quote)
+{
+	if (c == '\'' && *in_quote != '"')
+	{
+		if (*in_quote == '\'')
+			*in_quote = 0;
+		else
+			*in_quote = '\'';
+	}
+	else if (c == '"' && *in_quote != '\'')
+	{
+		if (*in_quote == '"')
+			*in_quote = 0;
+		else
+			*in_quote = '"';
+	}
+	return (0);
 }
 
 int	check_unclosed_quotes_in_input(const char *input)
@@ -30,20 +59,7 @@ int	check_unclosed_quotes_in_input(const char *input)
 	in_quote = 0;
 	while (input[i])
 	{
-		if (input[i] == '\'' && in_quote != '"')
-		{
-			if (in_quote == '\'')
-				in_quote = 0;
-			else
-				in_quote = '\'';
-		}
-		else if (input[i] == '"' && in_quote != '\'')
-		{
-			if (in_quote == '"')
-				in_quote = 0;
-			else
-				in_quote = '"';
-		}
+		toggle_quote_state(input[i], &in_quote);
 		i++;
 	}
 	if (in_quote != 0)

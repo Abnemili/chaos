@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/03 14:35:36 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/11 15:36:14 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 14:09:39 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,8 @@ extern t_env	*g_envp;
 
 int	process_regular_char(char *content, int *i, t_expand_data *data)
 {
-	if (!(*(data->res) = realloc_result(*(data->res), data->max, *(data->len)
-				+ 2)))
+	*(data->res) = realloc_result(*(data->res), data->max, *(data->len) + 2);
+	if (!(*(data->res)))
 		return (0);
 	(*(data->res))[(*(data->len))++] = content[(*i)++];
 	return (1);
@@ -62,23 +62,20 @@ char	*expand_token_content(char *content, int exit_code, int should_expand)
 	res[len] = '\0';
 	return (res);
 }
-/* minishell/expand_word.c */
-void    handle_word_token(t_elem *curr, int exit_code)
+
+void	handle_word_token(t_elem *curr, int exit_code)
 {
-    int   should_expand;
-    char *exp;
+	int		should_expand;
+	char	*exp;
 
-    /* NEVER expand inside a single‑quoted token */
-    should_expand = (curr->state != IN_QUOTE);     /*  ✅ new rule  */
-
-    exp = expand_token_content(curr->content, exit_code, should_expand);
-    if (exp)
-    {
-        free(curr->content);
-        curr->content = exp;
-        curr->type = WORD;
-        /* keep curr->state unchanged – it may still be IN_DQUOTE or GENERAL */
-    }
+	should_expand = (curr->state != IN_QUOTE);
+	exp = expand_token_content(curr->content, exit_code, should_expand);
+	if (exp)
+	{
+		free(curr->content);
+		curr->content = exp;
+		curr->type = WORD;
+	}
 }
 
 void	expand_tokens(t_elem *token, int exit_code)

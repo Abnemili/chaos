@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 14:35:39 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/11 15:26:25 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/24 14:34:42 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,4 +78,15 @@ void	cleanup_var_expansion(char *name, char *value, int is_special)
 	if (is_special)
 		free(value);
 	free(name);
+}
+void	cleanup_resources(t_data *data, t_lexer *lexer, char *input)
+{
+	if (data->elem)
+		free_token_list(data->elem);
+	if (data->head)
+		free_cmd_list(data->head);
+	if (lexer)
+		free_lexer(lexer);
+	if (input)
+		free(input);
 }
