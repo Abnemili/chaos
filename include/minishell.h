@@ -31,7 +31,7 @@
 # include "../libft/libft.h"
 # include "get_next_line.h"
 
-#define HEREDOC_TMP_TEMPLATE "/tmp/minishell_heredoc_XXXXXX"
+// #define HEREDOC_TMP_TEMPLATE "/tmp/minishell_heredoc_XXXXXX"
 /* ========================================================================== */
 /*                               ENUMS                                        */
 /* ========================================================================== */

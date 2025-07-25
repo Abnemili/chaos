@@ -12,29 +12,60 @@
 
 #include "minishell.h"
 
+static void reverse_str(char *str, int len)
+{
+    char *end = str + len - 1;
+    while (str < end) {
+        char tmp = *str;
+        *str++ = *end;
+        *end-- = tmp;
+    }
+}
 static char *generate_heredoc_filename(void)
 {
     char    *filename;
-    char    *base;
-    char    pid_str[16];
-    char    counter_str[16];
+    int     pid;
     static int counter = 0;
     
-    snprintf(pid_str, sizeof(pid_str), "%d", getpid());
-    snprintf(counter_str, sizeof(counter_str), "%d", counter++);
-    
-    base = ft_strjoin("/tmp/.minishell_heredoc_", pid_str);
-    if (!base)
-        return NULL;
-    
-    filename = ft_strjoin(base, "_");
-    free(base);
+    // Calculate needed size (base + pid + _ + counter + null)
+    pid = getpid();
+    filename = malloc(30 + 10 + 1 + 10 + 1); // Extra space for safety
     if (!filename)
         return NULL;
     
-    base = ft_strjoin(filename, counter_str);
-    free(filename);
-    return base;
+    // Manually format the string
+    char *ptr = filename;
+    
+    // Add base path
+    const char *base = "/tmp/.minishell_heredoc_";
+    while (*base)
+        *ptr++ = *base++;
+    
+    // Add PID
+    int n = pid;
+    char *start = ptr;
+    do {
+        *ptr++ = (n % 10) + '0';
+        n /= 10;
+    } while (n > 0);
+    reverse_str(start, ptr - start);
+    
+    // Add separator
+    *ptr++ = '_';
+    
+    // Add counter
+    n = counter++;
+    start = ptr;
+    do {
+        *ptr++ = (n % 10) + '0';
+        n /= 10;
+    } while (n > 0);
+    reverse_str(start, ptr - start);
+    
+    // Null terminate
+    *ptr = '\0';
+    
+    return filename;
 }
 
 char *create_heredoc_file(void)
