@@ -92,6 +92,7 @@ typedef struct s_cmd
 	int				in_file;
 	int				out_file;
 	char			**full_cmd;
+	int     		heredoc_fd;        // Heredoc file descriptor
 	char    		*heredoc_tmp;  // For storing heredoc temp filename
 	struct s_cmd	*next;
 }					t_cmd;
@@ -246,7 +247,10 @@ int			handle_redirection_append(t_data *data, t_elem
 				**current, t_cmd *cmd);
 int			handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd);
 int			process_redirection(t_data *data, t_elem **current, t_cmd *cmd);
-
+//heredoc utils 
+int     handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd);
+void    cleanup_heredoc(t_cmd *cmd);
+char    *create_heredoc_file(void);
 /* Parser utilities */
 void		skip_whitespace_ptr(t_elem **current);
 int			count_command_args(t_elem *start);

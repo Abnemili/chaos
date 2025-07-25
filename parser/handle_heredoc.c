@@ -12,126 +12,154 @@
 
 #include "minishell.h"
 
-static char *ft_create_tmpfile(void)
+static char *generate_heredoc_filename(void)
 {
-    char    *tmp_name;
-    int     fd;
-    int     i;
-    const char *base_dir;
-
-    // Try standard temporary directories first
-    const char *tmp_dirs[] = {"/tmp", "/var/tmp", ".", NULL};
+    char    *filename;
+    char    *base;
+    char    pid_str[16];
+    char    counter_str[16];
+    static int counter = 0;
     
-    i = 0;
-    while (tmp_dirs[i])
-    {
-        base_dir = tmp_dirs[i];
-        tmp_name = ft_strjoin(base_dir, "/.minishell_heredoc_XXXXXX");
-        if (!tmp_name)
-            return NULL;
-        
-        // Simple attempt to create unique filename
-        fd = open(tmp_name, O_CREAT | O_EXCL | O_RDWR, 0600);
-        if (fd != -1)
-        {
-            close(fd);
-            return tmp_name;
-        }
-        free(tmp_name);
-        i++;
-    }
-    return NULL;
+    snprintf(pid_str, sizeof(pid_str), "%d", getpid());
+    snprintf(counter_str, sizeof(counter_str), "%d", counter++);
+    
+    base = ft_strjoin("/tmp/.minishell_heredoc_", pid_str);
+    if (!base)
+        return NULL;
+    
+    filename = ft_strjoin(base, "_");
+    free(base);
+    if (!filename)
+        return NULL;
+    
+    base = ft_strjoin(filename, counter_str);
+    free(filename);
+    return base;
 }
-int handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd)
+
+char *create_heredoc_file(void)
 {
-    int tmp_fd;
-    char *tmp_name;
-    char *delimiter;
-    char *line;
-    char *expanded_line;
-
-    if (!data || !current || !*current || !cmd)
-        return (0);
-
-    *current = (*current)->next;  // Move past HERE_DOC token
-    skip_whitespace_ptr(current);
-
-    if (!*current || (*current)->type != WORD)
-        return (0);
-
-    delimiter = (*current)->content;
-
-    // Create unique temporary file for heredoc content
-    tmp_name = ft_create_tmpfile();
-    if (!tmp_name)
+    char    *filename;
+    int     fd;
+    
+    filename = generate_heredoc_filename();
+    if (!filename)
+        return NULL;
+    
+    fd = open(filename, O_CREAT | O_EXCL | O_RDWR, 0600);
+    if (fd == -1)
     {
-        data->file_error = 1;
-        return (0);
+        free(filename);
+        return NULL;
     }
+    close(fd);
+    return filename;
+}
 
-    tmp_fd = open(tmp_name, O_WRONLY | O_TRUNC);
-    if (tmp_fd == -1)
-    {
-        perror("open heredoc temp file");
-        free(tmp_name);
-        data->file_error = 1;
-        return (0);
-    }
-
+static int fill_heredoc(t_data *data, const char *filename, const char *delimiter)
+{
+    int     fd;
+    char    *line;
+    char    *expanded_line;
+    
+    fd = open(filename, O_WRONLY | O_TRUNC);
+    if (fd == -1)
+        return 0;
+    
     while (1)
     {
         line = readline("> ");
         if (!line)
-        {
-            // EOF or Ctrl-D
             break;
-        }
-
-        if (strcmp(line, delimiter) == 0)
+        
+        if (ft_strcmp(line, delimiter) == 0)
         {
             free(line);
             break;
         }
-
-        // Expand variables in heredoc line before writing
+        
         expanded_line = expand_token_content(line, data->exit_status, 1, data->env_list);
         free(line);
         if (!expanded_line)
         {
-            close(tmp_fd);
-            unlink(tmp_name);
-            free(tmp_name);
-            return (0);
+            close(fd);
+            return 0;
         }
-
-        write(tmp_fd, expanded_line, strlen(expanded_line));
-        write(tmp_fd, "\n", 1);
+        
+        write(fd, expanded_line, ft_strlen(expanded_line));
+        write(fd, "\n", 1);
         free(expanded_line);
     }
+    
+    close(fd);
+    return 1;
+}
 
-    close(tmp_fd);
-
-    // Reopen for reading to assign to cmd->in_file
-    tmp_fd = open(tmp_name, O_RDONLY);
-    if (tmp_fd == -1)
+int handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd)
+{
+    char    *filename;
+    char    *delimiter;
+    
+    if (!data || !current || !*current || !cmd)
+        return 0;
+    
+    // Clean up any existing heredoc
+    cleanup_heredoc(cmd);
+    
+    // Get delimiter
+    *current = (*current)->next;
+    skip_whitespace_ptr(current);
+    if (!*current || (*current)->type != WORD)
+        return 0;
+    delimiter = (*current)->content;
+    
+    // Create and fill heredoc file
+    filename = create_heredoc_file();
+    if (!filename || !fill_heredoc(data, filename, delimiter))
     {
-        perror("open heredoc temp file");
-        unlink(tmp_name);
-        free(tmp_name);
+        if (filename)
+            free(filename);
         data->file_error = 1;
-        return (0);
+        return 0;
     }
-
-    // Assign file descriptor to command input, closing previous if needed
+    
+    // Open for reading
+    cmd->heredoc_fd = open(filename, O_RDONLY);
+    if (cmd->heredoc_fd == -1)
+    {
+        free(filename);
+        data->file_error = 1;
+        return 0;
+    }
+    
+    // Set as input and store filename
     if (cmd->in_file != STDIN_FILENO)
         close(cmd->in_file);
-    cmd->in_file = tmp_fd;
-
-    // Store the temp filename for later cleanup
-    if (cmd->heredoc_tmp)
-        free(cmd->heredoc_tmp);
-    cmd->heredoc_tmp = tmp_name;
-
+    cmd->in_file = cmd->heredoc_fd;
+    cmd->heredoc_tmp = filename;
+    
     *current = (*current)->next;
-    return (1);
+    return 1;
+}
+
+void cleanup_heredoc(t_cmd *cmd)
+{
+    if (!cmd)
+        return;
+    
+    if (cmd->heredoc_tmp)
+    {
+        unlink(cmd->heredoc_tmp);
+        free(cmd->heredoc_tmp);
+        cmd->heredoc_tmp = NULL;
+    }
+    
+    if (cmd->heredoc_fd != -1 && cmd->heredoc_fd != STDIN_FILENO)
+    {
+        close(cmd->heredoc_fd);
+        cmd->heredoc_fd = -1;
+    }
+    
+    if (cmd->in_file == cmd->heredoc_fd)
+        cmd->in_file = STDIN_FILENO;
 }
