@@ -1,18 +1,4 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   exec_env.c                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/17 14:40:47 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/01 13:50:56 by abnemili         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "minishell.h"
-
-int	g_sigchild = 0;
 
 char	*ft_strjoin3(const char *s1, const char *s2, const char *s3)
 {
@@ -50,208 +36,209 @@ void	free_str_array(char **arr)
 
 // ======================== ENVIRONMENT UTILS ============================ //
 
-t_env    *create_env_node(const char *env)
+t_env	*create_env_node(const char *env)
 {
-    t_env    *node;
-    char    *sep;
+	t_env	*node;
+	char	*sep;
 
-    if (!env)
-        return (NULL);
-    node = malloc(sizeof(t_env));
-    if (!node)
-        return (NULL);
-    sep = strchr(env, '=');
-    if (!sep)
-    {
-        node->name = ft_strdup(env);
-        if (!node->name)
-            return (free(node), NULL);
-        node->value = NULL;
-        node->next = NULL;
-        return (node);
-    }
-    else
-        node->name = ft_strndup(env, sep - env);    
-    if (!node->name)
-        return (free(node), NULL);
-    node->value = strdup(sep + 1);
-    if (!node->value)
-        return (free(node->name), free(node), NULL);
-
-    node->next = NULL;
-    return (node);
+	if (!env)
+		return (NULL);
+	node = malloc(sizeof(t_env));
+	if (!node)
+		return (NULL);
+	sep = strchr(env, '=');
+	if (!sep)
+	{
+		node->name = ft_strdup(env);
+		if (!node->name)
+			return (free(node), NULL);
+		node->value = NULL;
+		node->next = NULL;
+		return (node);
+	}
+	else
+		node->name = ft_strndup(env, sep - env);
+	if (!node->name)
+		return (free(node), NULL);
+	node->value = strdup(sep + 1);
+	if (!node->value)
+		return (free(node->name), free(node), NULL);
+	node->next = NULL;
+	return (node);
 }
 
-void    add_env_back(t_env **lst, t_env *new_node)
+void	add_env_back(t_env **lst, t_env *new_node)
 {
-    t_env    *temp;
+	t_env	*temp;
 
-    if (!lst || !new_node)
-        return ;
-    if (!*lst)
-    {
-        *lst = new_node;
-        return ;
-    }
-    temp = *lst;
-    while (temp->next)
-        temp = temp->next;
-    temp->next = new_node;
+	if (!lst || !new_node)
+		return ;
+	if (!*lst)
+	{
+		*lst = new_node;
+		return ;
+	}
+	temp = *lst;
+	while (temp->next)
+		temp = temp->next;
+	temp->next = new_node;
 }
 
 // Modified to return the created environment list instead of using global
-t_env    *init_env_list(char **envp)
+t_env	*init_env_list(char **envp)
 {
-    int        i;
-    t_env    *node;
-    t_env    *env_list;
+	int		i;
+	t_env	*node;
+	t_env	*env_list;
 
-    i = 0;
-    env_list = NULL;
-    if (!envp)
-        return (NULL);
-    while (envp[i])
-    {
-        node = create_env_node(envp[i]);
-        if (node)
-            add_env_back(&env_list, node);
-        i++;
-    }
-    return (env_list);
+	i = 0;
+	env_list = NULL;
+	if (!envp)
+		return (NULL);
+	while (envp[i])
+	{
+		node = create_env_node(envp[i]);
+		if (node)
+			add_env_back(&env_list, node);
+		i++;
+	}
+	return (env_list);
 }
 
-void    free_env_list(t_env *env)
+void	free_env_list(t_env *env)
 {
-    t_env    *tmp;
+	t_env	*tmp;
 
-    while (env)
-    {
-        tmp = env;
-        env = env->next;
-        if (tmp->name)
-            free(tmp->name);
-        if (tmp->value)
-            free(tmp->value);
-        free(tmp);
-    }
-}
-
-// Modified to take env_list as parameter
-char    *get_env_value(t_env *env_list, char *key)
-{
-    t_env    *tmp;
-
-    tmp = env_list;
-    if (!key)
-        return (NULL);
-    while (tmp)
-    {
-        if (tmp->name && !ft_strcmp(tmp->name, key))
-            return (tmp->value);
-        tmp = tmp->next;
-    }
-    return (NULL);
-}
-static char *search_in_paths(char **paths, char *cmd)
-{
-    char *full;
-    int i = 0;
-    
-    while (paths[i])
-    {
-        full = ft_strjoin3(paths[i], "/", cmd);
-        if (full && access(full, X_OK) == 0)
-            return (full);
-        if (full)
-            free(full);
-        i++;
-    }
-    return (NULL);
+	while (env)
+	{
+		tmp = env;
+		env = env->next;
+		if (tmp->name)
+			free(tmp->name);
+		if (tmp->value)
+			free(tmp->value);
+		free(tmp);
+	}
 }
 
 // Modified to take env_list as parameter
-char *get_cmd_path(char *cmd, t_env *env_list)
+char	*get_env_value(t_env *env_list, char *key)
 {
-    char **paths;
-    char *env_path;
-    char *result;
-    
-    if (!cmd)
-        return (NULL);
-    if (ft_strchr(cmd, '/'))
-        return (ft_strdup(cmd));
-    env_path = get_env_value(env_list, "PATH");
-    if (!env_path)
-        return (ft_strdup(cmd));
-    paths = ft_split(env_path, ':');
-    if (!paths)
-        return (NULL);
-    result = search_in_paths(paths, cmd);
-    free_str_array(paths);
-    return (result);
+	t_env	*tmp;
+
+	tmp = env_list;
+	if (!key)
+		return (NULL);
+	while (tmp)
+	{
+		if (tmp->name && !ft_strcmp(tmp->name, key))
+			return (tmp->value);
+		tmp = tmp->next;
+	}
+	return (NULL);
+}
+static char	*search_in_paths(char **paths, char *cmd)
+{
+	char	*full;
+	int		i;
+
+	i = 0;
+	while (paths[i])
+	{
+		full = ft_strjoin3(paths[i], "/", cmd);
+		if (full && access(full, X_OK) == 0)
+			return (full);
+		if (full)
+			free(full);
+		i++;
+	}
+	return (NULL);
 }
 
-//env_norm_start
-static int count_valid_env_vars(t_env *env)
+// Modified to take env_list as parameter
+char	*get_cmd_path(char *cmd, t_env *env_list)
 {
-    int count = 0;
-    
-    while (env)
-    {
-        if (env->name && env->value)
-            count++;
-        env = env->next;
-    }
-    return count;
+	char	**paths;
+	char	*env_path;
+	char	*result;
+
+	if (!cmd)
+		return (NULL);
+	if (ft_strchr(cmd, '/'))
+		return (ft_strdup(cmd));
+	env_path = get_env_value(env_list, "PATH");
+	if (!env_path)
+		return (ft_strdup(cmd));
+	paths = ft_split(env_path, ':');
+	if (!paths)
+		return (NULL);
+	result = search_in_paths(paths, cmd);
+	free_str_array(paths);
+	return (result);
 }
 
-static void cleanup_array_on_failure(char **arr, int i)
+// env_norm_start
+static int	count_valid_env_vars(t_env *env)
 {
-    while (--i >= 0)
-        free(arr[i]);
-    free(arr);
+	int	count;
+
+	count = 0;
+	while (env)
+	{
+		if (env->name && env->value)
+			count++;
+		env = env->next;
+	}
+	return (count);
 }
 
-static char *create_env_string(char *name, char *value)
+static void	cleanup_array_on_failure(char **arr, int i)
 {
-    char *tmp;
-    char *result;
-    
-    tmp = ft_strjoin(name, "=");
-    if (!tmp)
-        return (NULL);
-    result = ft_strjoin(tmp, value);
-    free(tmp);
-    return (result);
+	while (--i >= 0)
+		free(arr[i]);
+	free(arr);
 }
 
-char **env_to_array(t_env *env)
+static char	*create_env_string(char *name, char *value)
 {
-    int count, i = 0;
-    char **arr;
-    
-    count = count_valid_env_vars(env);
-    arr = malloc(sizeof(char *) * (count + 1));
-    if (!arr)
-        return (NULL);
-    while (env && i < count)
-    {
-        if (env->name && env->value)
-        {
-            arr[i] = create_env_string(env->name, env->value);
-            if (!arr[i])
-            {
-                cleanup_array_on_failure(arr, i);
-                return (NULL);
-            }
-            i++;
-        }
-        env = env->next;
-    }
-    arr[i] = NULL;
-    return (arr);
+	char	*tmp;
+	char	*result;
+
+	tmp = ft_strjoin(name, "=");
+	if (!tmp)
+		return (NULL);
+	result = ft_strjoin(tmp, value);
+	free(tmp);
+	return (result);
 }
-//env_norm_end
+
+char	**env_to_array(t_env *env)
+{
+	char	**arr;
+
+	int count, i = 0;
+	count = count_valid_env_vars(env);
+	arr = malloc(sizeof(char *) * (count + 1));
+	if (!arr)
+		return (NULL);
+	while (env && i < count)
+	{
+		if (env->name && env->value)
+		{
+			arr[i] = create_env_string(env->name, env->value);
+			if (!arr[i])
+			{
+				cleanup_array_on_failure(arr, i);
+				return (NULL);
+			}
+			i++;
+		}
+		env = env->next;
+	}
+	arr[i] = NULL;
+	return (arr);
+}
+// env_norm_end
 
 // ======================== BUILT-IN COMMANDS ============================ //
 
@@ -294,18 +281,18 @@ int	builtin_echo(char **args)
 	return (0);
 }
 
-int    builtin_env(t_env *env_list)
+int	builtin_env(t_env *env_list)
 {
-    t_env    *tmp;
+	t_env	*tmp;
 
-    tmp = env_list;
-    while (tmp)
-    {
-        if (tmp->name && tmp->value)
-            printf("%s=%s\n", tmp->name, tmp->value);
-        tmp = tmp->next;
-    }
-    return (0);
+	tmp = env_list;
+	while (tmp)
+	{
+		if (tmp->name && tmp->value)
+			printf("%s=%s\n", tmp->name, tmp->value);
+		tmp = tmp->next;
+	}
+	return (0);
 }
 
 // Modified to take env_list as parameter
@@ -324,42 +311,41 @@ int	builtin_exit(char **args, t_env *env_list)
 /* ---------------------- DISPLAY FUNCTIONS ---------------------- */
 
 // Modified to take env_list as parameter
-static void print_exported_vars(t_env *env_list)
+static void	print_exported_vars(t_env *env_list)
 {
-    t_env *tmp = env_list;
-    
-    while (tmp)
-    {
-        if (tmp->value)
-            printf("declare -x %s=\"%s\"\n", tmp->name, tmp->value);
-        else
-            printf("declare -x %s\n", tmp->name);
-        tmp = tmp->next;
-    }
+	t_env	*tmp;
+
+	tmp = env_list;
+	while (tmp)
+	{
+		if (tmp->value)
+			printf("declare -x %s=\"%s\"\n", tmp->name, tmp->value);
+		else
+			printf("declare -x %s\n", tmp->name);
+		tmp = tmp->next;
+	}
 }
 
 /* ---------------------- VARIABLE UPDATE FUNCTIONS ---------------------- */
 
-static int update_existing_var(t_env *node, char *new_value)
+static int	update_existing_var(t_env *node, char *new_value)
 {
-    if (!node || !new_value)
-        return (0);
-    
-    if (node->value)
-        free(node->value);
-    node->value = ft_strdup(new_value);
-    return (1);
+	if (!node || !new_value)
+		return (0);
+	if (node->value)
+		free(node->value);
+	node->value = ft_strdup(new_value);
+	return (1);
 }
 
 // Modified to take env_list as parameter
-static int create_new_var(char *name, char *value, t_env **env_list)
+static int	create_new_var(char *name, char *value, t_env **env_list)
 {
-	t_env *new_node;
-	char *full_var;
+	t_env	*new_node;
+	char	*full_var;
 
 	if (!name)
 		return (0);
-
 	if (!value)
 		full_var = ft_strdup(name);
 	else
@@ -370,7 +356,6 @@ static int create_new_var(char *name, char *value, t_env **env_list)
 	free(full_var);
 	if (!new_node)
 		return (0);
-
 	add_env_back(env_list, new_node);
 	return (1);
 }
@@ -378,101 +363,95 @@ static int create_new_var(char *name, char *value, t_env **env_list)
 /* ---------------------- ARGUMENT PROCESSING ---------------------- */
 
 // Modified to take env_list as parameter
-static int process_var_assignment(char *arg, t_env **env_list)
+static int	process_var_assignment(char *arg, t_env **env_list)
 {
-    char *sep = ft_strchr(arg, '=');
-    t_env *tmp;
+	char	*sep;
+	t_env	*tmp;
 
-    if (!sep)
-        return (create_new_var(arg, NULL, env_list));
-    
-    *sep = '\0';  // Temporarily split at '='
-    tmp = *env_list;
-    while (tmp)
-    {
-        if (tmp->name && !ft_strcmp(tmp->name, arg))
-        {
-            *sep = '=';
-            return update_existing_var(tmp, sep + 1);
-        }
-        tmp = tmp->next;
-    }
-    *sep = '=';
-    return create_new_var(arg, sep + 1, env_list);
+	sep = ft_strchr(arg, '=');
+	if (!sep)
+		return (create_new_var(arg, NULL, env_list));
+	*sep = '\0'; // Temporarily split at '='
+	tmp = *env_list;
+	while (tmp)
+	{
+		if (tmp->name && !ft_strcmp(tmp->name, arg))
+		{
+			*sep = '=';
+			return (update_existing_var(tmp, sep + 1));
+		}
+		tmp = tmp->next;
+	}
+	*sep = '=';
+	return (create_new_var(arg, sep + 1, env_list));
 }
 
 /* ---------------------- MAIN EXPORT FUNCTION ---------------------- */
 
 // Modified to take env_list as parameter
-int builtin_export(char **args, t_env **env_list)
+int	builtin_export(char **args, t_env **env_list)
 {
-	int		i;
+	int	i;
 
-    if (!args || !args[0])
-        return (1);
-    
-    if (!args[1])
-    {
-        print_exported_vars(*env_list);
-        return (0);
-    }
+	if (!args || !args[0])
+		return (1);
+	if (!args[1])
+	{
+		print_exported_vars(*env_list);
+		return (0);
+	}
 	i = 1;
-    while (args[i])
-    {
-        if (!process_var_assignment(args[i], env_list))
-            return (1);
-        i++;
-    }
-    return (0);
+	while (args[i])
+	{
+		if (!process_var_assignment(args[i], env_list))
+			return (1);
+		i++;
+	}
+	return (0);
 }
 /*the end of it */
 
 // Modified to take env_list as parameter
-static int unset_single_var(char *var_name, t_env **env_list)
+static int	unset_single_var(char *var_name, t_env **env_list)
 {
-    t_env *tmp, *prev;
-    
-    tmp = *env_list;
-    prev = NULL;
-    
-    while (tmp)
-    {
-        if (tmp->name && !ft_strcmp(tmp->name, var_name))
-        {
-            if (prev)
-                prev->next = tmp->next;
-            else
-                *env_list = tmp->next;
-            if (tmp->name)
-                free(tmp->name);
-            if (tmp->value)
-                free(tmp->value);
-            free(tmp);
-            
-            return (1); // Variable found and removed
-        }
-        prev = tmp;
-        tmp = tmp->next;
-    }
-    return (0); // Variable not found
+	t_env *tmp, *prev;
+	tmp = *env_list;
+	prev = NULL;
+	while (tmp)
+	{
+		if (tmp->name && !ft_strcmp(tmp->name, var_name))
+		{
+			if (prev)
+				prev->next = tmp->next;
+			else
+				*env_list = tmp->next;
+			if (tmp->name)
+				free(tmp->name);
+			if (tmp->value)
+				free(tmp->value);
+			free(tmp);
+			return (1); // Variable found and removed
+		}
+		prev = tmp;
+		tmp = tmp->next;
+	}
+	return (0); // Variable not found
 }
 
 // Modified to take env_list as parameter
-int builtin_unset(char **args, t_env **env_list)
+int	builtin_unset(char **args, t_env **env_list)
 {
-    int i;
-    
-    if (!args || !args[0])
-        return (1);
-    
-    i = 1;
-    while (args[i])
-    {
-        unset_single_var(args[i], env_list);
-        i++;
-    }
-    
-    return (0);
+	int	i;
+
+	if (!args || !args[0])
+		return (1);
+	i = 1;
+	while (args[i])
+	{
+		unset_single_var(args[i], env_list);
+		i++;
+	}
+	return (0);
 }
 
 // Modified to take env_list as parameter
@@ -535,9 +514,10 @@ int	exec_builtin(t_cmd *cmd, t_env **env_list)
 // Modified to take env_list as parameter
 int	execute_builtin_command(t_cmd *cmd, t_env **env_list)
 {
-	int	saved_stdin = -1, saved_stdout = -1;
+	int	saved_stdin = -1, saved_stdout;
 	int	ret;
 
+	saved_stdin = -1, saved_stdout = -1;
 	if (cmd->in_file != STDIN_FILENO)
 	{
 		saved_stdin = dup(STDIN_FILENO);
@@ -719,7 +699,8 @@ void	execute_child_command(t_cmd *cmd, char **envp, t_env **env_list)
 
 // Function 5: Handle child process creation and execution
 // Modified to take env_list as parameter
-int	handle_child_process(t_cmd *cmd, int *pipefd, int prev_fd, char **envp, t_env **env_list)
+int	handle_child_process(t_cmd *cmd, int *pipefd, int prev_fd, char **envp,
+		t_env **env_list)
 {
 	pid_t	pid;
 
@@ -762,7 +743,8 @@ char	**init_pipeline(t_data *data, t_env *env_list)
 }
 
 // Modified to take env_list as parameter
-int	execute_one_pipeline_step(t_cmd *cmd, char **envp, int *prev_fd, int pipefd[2], t_env **env_list)
+int	execute_one_pipeline_step(t_cmd *cmd, char **envp, int *prev_fd,
+		int pipefd[2], t_env **env_list)
 {
 	if (cmd->next && pipe(pipefd) < 0)
 	{
@@ -784,21 +766,20 @@ int	execute_one_pipeline_step(t_cmd *cmd, char **envp, int *prev_fd, int pipefd[
 	}
 	if (*prev_fd != -1)
 		close(*prev_fd);
-		if (cmd->next)
-		{
-			close(pipefd[1]);
-			*prev_fd = pipefd[0];
-		}
-		return (0);
+	if (cmd->next)
+	{
+		close(pipefd[1]);
+		*prev_fd = pipefd[0];
 	}
-	
-	
+	return (0);
+}
+
 // Function 2: Execute pipeline commands loop
 // Modified to take env_list as parameter
 int	execute_pipeline_commands(t_cmd *cmd, char **envp, t_env **env_list)
 {
-	int		pipefd[2];
-	int		prev_fd;
+	int	pipefd[2];
+	int	prev_fd;
 
 	prev_fd = -1;
 	while (cmd)
@@ -808,7 +789,8 @@ int	execute_pipeline_commands(t_cmd *cmd, char **envp, t_env **env_list)
 			cmd = cmd->next;
 			continue ;
 		}
-		if (execute_one_pipeline_step(cmd, envp, &prev_fd, pipefd, env_list) == -1)
+		if (execute_one_pipeline_step(cmd, envp, &prev_fd, pipefd, env_list) ==
+			-1)
 			return (-1);
 		cmd = cmd->next;
 	}
@@ -858,80 +840,82 @@ int	execute_pipeline(t_data *data, t_env **env_list)
 
 // ============================ SIGNALS ============================ //
 
-static int *g_last_exit_code = NULL;
+int			g_sigchild = 0;
+
+static int	*g_last_exit_code = NULL;
 
 // Wrapper functions for signal handlers
-void sigint_wrapper(int signo)
+void	sigint_wrapper(int signo)
 {
-    if (g_last_exit_code)
-    {
-        *g_last_exit_code = 130;
-        if (signo == SIGINT && g_sigchild)
-        {
-            printf("\n");
-            rl_on_new_line();
-            rl_replace_line("", 0);
-            g_sigchild = 0;
-        }
-        else
-        {
-            printf("\n");
-            rl_on_new_line();
-            rl_replace_line("", 0);
-            rl_redisplay();
-        }
-    }
+	if (g_last_exit_code)
+	{
+		*g_last_exit_code = 130;
+		if (signo == SIGINT && g_sigchild)
+		{
+			printf("\n");
+			rl_on_new_line();
+			rl_replace_line("", 0);
+			g_sigchild = 0;
+		}
+		else
+		{
+			printf("\n");
+			rl_on_new_line();
+			rl_replace_line("", 0);
+			rl_redisplay();
+		}
+	}
 }
 
-void sigquit_wrapper(int signo)
+void	sigquit_wrapper(int signo)
 {
-    if (g_last_exit_code)
-    {
-        *g_last_exit_code = 131;
-        if (signo == SIGQUIT && g_sigchild)
-        {
-            printf("Quit (core dumped)\n");
-            rl_on_new_line();
-            rl_replace_line("", 0);
-            g_sigchild = 0;
-        }
-        else
-        {
-            rl_replace_line("", 0);
-            rl_on_new_line();
-            rl_redisplay();
-        }
-    }
+	if (g_last_exit_code)
+	{
+		*g_last_exit_code = 131;
+		if (signo == SIGQUIT && g_sigchild)
+		{
+			printf("Quit (core dumped)\n");
+			rl_on_new_line();
+			rl_replace_line("", 0);
+			g_sigchild = 0;
+		}
+		else
+		{
+			rl_replace_line("", 0);
+			rl_on_new_line();
+			rl_redisplay();
+		}
+	}
 }
 
 // Function to set up signal handlers
-void handle_signals(int *last_exit_code)
+void	handle_signals(int *last_exit_code)
 {
-    g_last_exit_code = last_exit_code;
-    signal(SIGINT, sigint_wrapper);
-    signal(SIGQUIT, sigquit_wrapper);
+	g_last_exit_code = last_exit_code;
+	signal(SIGINT, sigint_wrapper);
+	signal(SIGQUIT, sigquit_wrapper);
 }
 
 // Function to ignore signals (useful during command execution)
-void ignore_signals(void)
+void	ignore_signals(void)
 {
-    signal(SIGINT, SIG_IGN);
-    signal(SIGQUIT, SIG_IGN);
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
 }
 
 // Function to restore default signal behavior (for child processes)
-void default_signals(void)
+void	default_signals(void)
 {
-    signal(SIGINT, SIG_DFL);
-    signal(SIGQUIT, SIG_DFL);
+	signal(SIGINT, SIG_DFL);
+	signal(SIGQUIT, SIG_DFL);
 }
 
-void set_child_running(void)
+void	set_child_running(void)
 {
-    g_sigchild = 1;
+	g_sigchild = 1;
 }
 
-void set_child_finished(void)
+void	set_child_finished(void)
 {
-    g_sigchild = 0;
+	g_sigchild = 0;
 }

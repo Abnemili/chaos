@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 16:36:40 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/24 14:36:17 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/25 15:01:46 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 # include "../libft/libft.h"
 # include "get_next_line.h"
 
+#define HEREDOC_TMP_TEMPLATE "/tmp/minishell_heredoc_XXXXXX"
 /* ========================================================================== */
 /*                               ENUMS                                        */
 /* ========================================================================== */
@@ -60,7 +61,7 @@ enum e_state
 	IN_QUOTE,
 	GENERAL
 };
-
+// If they're in a separate .c file, declare them here:
 /* ========================================================================== */
 /*                               STRUCTURES                                   */
 /* ========================================================================== */
@@ -91,6 +92,7 @@ typedef struct s_cmd
 	int				in_file;
 	int				out_file;
 	char			**full_cmd;
+	char    		*heredoc_tmp;  // For storing heredoc temp filename
 	struct s_cmd	*next;
 }					t_cmd;
 
@@ -151,6 +153,7 @@ typedef struct s_data
 	char			*expnd;
 	t_list			*save_error;
 	struct s_env	*n_env;
+	t_env 			*env_list;
 }			t_data;
 
 /* ========================================================================== */
@@ -204,7 +207,7 @@ int			handle_pipe(const char *input, int i, t_elem **head);
 int			check_quotes_balance(const char *input);
 int			check_unclosed_quotes_in_input(const char *input);
 int			check_unclosed_quotes_in_tokens(t_elem *tokens);
-
+int			is_empty(char c);
 /* Syntax checking main functions */
 int			check_syntax(t_elem *token);
 int			check_initial_syntax(t_elem *curr);
@@ -402,5 +405,5 @@ void		print_pipeline_debug(t_data *data);
 // UPDATED: get_cmd_path now takes env_list parameter
 char		*get_cmd_path(char *cmd, t_env *env_list);
 char		**env_to_array(t_env *env);
-int		is_empty(char c);
+
 #endif
