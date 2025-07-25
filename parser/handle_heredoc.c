@@ -9,7 +9,6 @@
 /*   Updated: 2025/06/13 10:17:37 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 #include "minishell.h"
 
 static int	create_heredoc_pipe(int pipe_fd[2])

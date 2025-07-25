@@ -3,8 +3,8 @@ NAME = minishell
 
 # Compiler and flags
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -Iinclude -Ilibft
-LDFLAGS = -lreadline
+CFLAGS = -Wall -Wextra -Werror -Iinclude -Ilibft -g3 -I/opt/homebrew/opt/readline/include
+LDFLAGS = -L/opt/homebrew/opt/readline/lib -lreadline -lhistory
 
 # Libft
 LIBFT_DIR = libft
@@ -16,7 +16,6 @@ RESET = \033[0m
 
 # Source files
 SRC = main.c \
-      debugin.c \
       \
       lexer/lexer_init.c \
       lexer/lexer_special_handler.c \
@@ -33,15 +32,17 @@ SRC = main.c \
       parser/handle_redirections.c \
       parser/handle_heredoc.c \
       parser/parser_utils.c \
+      parser/parser_argument.c \
       parser/parser.c \
       \
       clean_up/ft_clean.c \
       \
       execution/exec_env.c \
       \
-      expand/expand_token.c \
-      expand/expand_env.c \
-      expand/expand_utils.c 
+      expand/var_extraction.c \
+      expand/var_expansion_utils.c \
+      expand/token_handling.c \
+      expand/expansion_processing.c 
 
 # Object files
 OBJ = $(SRC:.c=.o)

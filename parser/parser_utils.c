@@ -15,14 +15,14 @@
 void	skip_whitespace_ptr(t_elem **current)
 {
 	if (!current)
-		return ;
+		return;
 	while (*current && (*current)->type == WHITE_SPACE)
 		*current = (*current)->next;
 }
 
 int	count_command_args(t_elem *start)
 {
-	int		count;
+	int	count;
 	t_elem	*current;
 
 	count = 0;
@@ -55,22 +55,6 @@ int	allocate_cmd_args(t_cmd *cmd, int arg_count)
 	return (1);
 }
 
-int	process_word_token(t_data *data, t_elem **current, t_cmd *cmd,
-		int *arg_index)
-{
-	if (!data || !current || !*current || !cmd || !arg_index)
-		return (0);
-	if (cmd->full_cmd && !is_redirection_target(*current, data->elem))
-	{
-		cmd->full_cmd[*arg_index] = ft_strdup((*current)->content);
-		if (!cmd->full_cmd[*arg_index])
-			return (0);
-		(*arg_index)++;
-	}
-	*current = (*current)->next;
-	return (1);
-}
-
 int	is_redirection_target(t_elem *elem, t_elem *start)
 {
 	t_elem	*current;
@@ -83,13 +67,13 @@ int	is_redirection_target(t_elem *elem, t_elem *start)
 	while (current)
 	{
 		if (current == elem)
-			break ;
+			break;
 		if (current->type != WHITE_SPACE)
 			prev = current;
 		current = current->next;
 	}
 	if (!current || !prev)
 		return (0);
-	return (prev->type == REDIR_IN || prev->type == REDIR_OUT
-		|| prev->type == DREDIR_OUT || prev->type == HERE_DOC);
+	return (prev->type == REDIR_IN || prev->type == REDIR_OUT ||
+		prev->type == DREDIR_OUT || prev->type == HERE_DOC);
 }

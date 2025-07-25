@@ -114,43 +114,40 @@ void	print_pipeline_compact(t_data *data)
 
 
 // Process input and return status (0 = error, 1 = success)
-int	process_input(char *input, int *last_exit_code)
+int process_input(char *input, int *last_exit_code, t_env **env_list)
 {
-	t_data	data;
-	t_lexer	*lexer;
+    t_data data = {0};
+    t_lexer *lexer = NULL;
 
-	init_data(&data, input); // init data
-	if (check_empty_line(&data))
-		return (1); // Empty line is not an error
-	lexer = init_lexer(input); // init lexer
-	if (!lexer)
-	{
-		printf("Error: lexer initialization failed\n");
-		return (0);
-	}
-	// Tokenize and merge the tokens quote
-	data.elem = init_tokens(lexer); // tokenising
-	merge_adjacent_word_tokens(&data.elem);
-	if (!parse_input(data.elem, input, lexer))
-	{
-		cleanup_resources(&data, lexer, NULL);
-		return (0);
-	}
-	expand_tokens(data.elem, *last_exit_code); // probably
-	if (!parse_pipeline(&data))
-	{
-		printf("Error: pipeline parsing failed\n");
-		printf("DETECTED HERE IN PASE_PIPELINE MIAN.C \n");
-		cleanup_resources(&data, lexer, NULL);
-		return (0);
-	}
-	// Debug output (remove in production)
-	printf("\n--- DEBUG: Parsed Commands ---\n");
-	print_pipeline_debug(&data);
-	// TODO: Execute commands and update last_exit_code
-	// *last_exit_code = execute_pipeline(&data);
-	*last_exit_code = 0; // Mock exit status
-	// Cleanup
-	cleanup_resources(&data, lexer, NULL);
-	return (1);
+    if (!input || !*input)
+        return (1);
+    
+    lexer = init_lexer(input);
+    if (!lexer)
+        return (0);
+    
+    data.elem = init_tokens(lexer);
+    if (!data.elem)
+    {
+        free(lexer);
+        return (0);
+    }
+    
+    merge_adjacent_word_tokens(&data.elem);
+    // Updated: Pass env_list to expand_tokens
+    expand_tokens(data.elem, *last_exit_code, *env_list);
+    
+    if (!parse_pipeline(&data))
+    {
+        cleanup_resources(&data, lexer, NULL);
+        return (0);
+    }
+    
+    // Set the exit status pointer in data for signal handlers
+    data.exit_status = *last_exit_code;
+    
+    // Updated: Pass env_list to execute_pipeline
+    *last_exit_code = execute_pipeline(&data, env_list);
+    cleanup_resources(&data, lexer, NULL);
+    return (1);
 }

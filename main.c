@@ -22,26 +22,75 @@ int	ft_strcmp(const char *s1, const char *s2)
 	return ((unsigned char)s1[i] - (unsigned char)s2[i]);
 }
 
-int	main(int ac, char **av, char **env)
+// Process input and return status (0 = error, 1 = success)
+int process_input(char *input, int *last_exit_code, t_env **env_list)
 {
-	char	*input;
-	int		last_exit_code;
+    t_data data = {0};
+    t_lexer *lexer = NULL;
 
-	last_exit_code = 0;
-	(void)av;
-	(void)ac;
-	init_env_list(env);
-	while (1)
-	{
-		input = readline("minishell $> ");
-		if (!input)
-		{
-			printf("exit\n");
-			break ;
-		}
-		if (process_input(input, &last_exit_code))
-			add_history(input);
-		free(input);
-	}
-	return (0);
+    if (!input || !*input)
+        return (1);
+    
+    lexer = init_lexer(input);
+    if (!lexer)
+        return (0);
+    
+    data.elem = init_tokens(lexer);
+    if (!data.elem)
+    {
+        free(lexer);
+        return (0);
+    }
+    
+    merge_adjacent_word_tokens(&data.elem);
+    // Updated: Pass env_list to expand_tokens
+    expand_tokens(data.elem, *last_exit_code, *env_list);
+    
+    if (!parse_pipeline(&data))
+    {
+        cleanup_resources(&data, lexer, NULL);
+        return (0);
+    }
+    
+    // Set the exit status pointer in data for signal handlers
+    data.exit_status = *last_exit_code;
+    
+    // Updated: Pass env_list to execute_pipeline
+    *last_exit_code = execute_pipeline(&data, env_list);
+    cleanup_resources(&data, lexer, NULL);
+    return (1);
+}
+
+int main(int argc, char **argv, char **envp)
+{
+    char *input;
+    int last_exit_code = 0;
+    t_env *env_list;
+    
+    (void)argc;
+    (void)argv;
+    env_list = init_env_list(envp);
+    if (!env_list)
+    {
+        fprintf(stderr, "minishell: failed to initialize environment\n");
+        return (1);
+    }
+    handle_signals(&last_exit_code);
+    while (1)
+    {
+        input = readline("minishell$ ");
+        if (!input)
+        {
+            printf("exit\n");
+            break;
+        }
+        if (*input)
+        {
+            add_history(input);
+            process_input(input, &last_exit_code, &env_list);
+        }
+        free(input);
+    }
+    free_env_list(env_list);
+    return (last_exit_code);
 }
