@@ -85,8 +85,8 @@ void expand_tokens(t_elem *token, int exit_code, t_env *env_list) {
     while (curr) {
         if (curr->type == QUOTE || curr->type == DQUOTE)
             handle_quoted_token(curr, exit_code, env_list);
-        else if ((curr->type == WORD || curr->type == ENV) 
-                 && curr->state != IN_QUOTE)
+        else if ((curr->type == WORD || curr->type == ENV || curr->type == EXIT_STATUS)
+                && curr->state != IN_QUOTE)
             handle_word_token(curr, exit_code, env_list);
         curr = curr->next;
     }

@@ -9,7 +9,6 @@
 /*   Updated: 2025/07/25 15:01:46 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
@@ -35,6 +34,11 @@
 /* ========================================================================== */
 /*                               ENUMS                                        */
 /* ========================================================================== */
+
+/* Add these near other function declarations */
+char    *simple_itoa(int n);
+int     create_heredoc_file(char *filename);
+
 
 extern int					g_sigchild;
 
@@ -86,6 +90,12 @@ typedef struct s_expand_data
 
 // REMOVED: Global environment variable declaration
 // extern t_env	*g_envp;
+// Struct to handle heredoc state
+typedef struct s_heredoc_state {
+    volatile int interrupted;
+    struct sigaction old_sa;
+} t_heredoc_state;
+
 
 typedef struct s_cmd
 {
@@ -250,7 +260,7 @@ int			process_redirection(t_data *data, t_elem **current, t_cmd *cmd);
 //heredoc utils 
 int     handle_heredoc(t_data *data, t_elem **current, t_cmd *cmd);
 void    cleanup_heredoc(t_cmd *cmd);
-char    *create_heredoc_file(void);
+
 /* Parser utilities */
 void		skip_whitespace_ptr(t_elem **current);
 int			count_command_args(t_elem *start);
@@ -409,5 +419,48 @@ void		print_pipeline_debug(t_data *data);
 // UPDATED: get_cmd_path now takes env_list parameter
 char		*get_cmd_path(char *cmd, t_env *env_list);
 char		**env_to_array(t_env *env);
+
+
+
+
+
+
+
+
+
+
+/* ========================================================================== */
+/*                           FUNCTION PROTOTYPES                             */
+/* ========================================================================== */
+
+// String comparison utility
+int		ft_strcmp(const char *s1, const char *s2);
+
+// Syntax check utilities
+int		is_quote(enum e_type type);
+int		is_redirection(enum e_type type);
+int		is_empty(char c);
+t_elem	*skip_whitespace(t_elem *token);
+int		update_quote_state(enum e_type type, enum e_state *state);
+int		check_unclosed_quotes_in_input(const char *input);
+char	*get_redirection_symbol(enum e_type type);
+
+// Syntax validators
+int		validate_pipe(t_elem *prev_significant);
+int		validate_redirection(t_elem *curr);
+int		check_initial_syntax(t_elem *curr);
+int		process_token(t_elem *curr, enum e_state *state, t_elem **prev_significant);
+int		check_final_syntax(enum e_state state, t_elem *prev_significant);
+int		check_syntax(t_elem *token);
+
+// Main parsing function
+int		parse_input(t_elem *token, char *input, t_lexer *lexer);
+
+// Main process and execution
+int		process_input(char *input, int *last_exit_code, t_env **env_list);
+// String utilities
+char	*ft_strncpy(char *dest, const char *src, size_t n);
+char	*ft_strndup(const char *s, size_t n);
+int		check_empty_line(t_data *data);
 
 #endif
