@@ -6,10 +6,11 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 16:36:40 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/25 15:01:46 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/26 10:07:26 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#ifndef MINISHELL_H
+
+# ifndef MINISHELL_H
 # define MINISHELL_H
 
 /* ========================================================================== */
@@ -41,6 +42,7 @@ int     create_heredoc_file(char *filename);
 
 
 extern int					g_sigchild;
+
 
 enum e_type
 {
@@ -93,7 +95,7 @@ typedef struct s_expand_data
 // Struct to handle heredoc state
 typedef struct s_heredoc_state {
     volatile int interrupted;
-    struct sigaction old_sa;
+    // struct sigaction old_sa;
 } t_heredoc_state;
 
 

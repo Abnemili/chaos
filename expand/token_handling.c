@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   expand_utils.c                                     :+:      :+:    :+:   */
+/*   token_handling.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/29 11:41:15 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/24 14:10:22 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/26 10:06:25 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void expand_tokens(t_elem *token, int exit_code, t_env *env_list) {
     while (curr) {
         if (curr->type == QUOTE || curr->type == DQUOTE)
             handle_quoted_token(curr, exit_code, env_list);
-        else if ((curr->type == WORD || curr->type == ENV || curr->type == EXIT_STATUS)
+         else if ((curr->type == WORD || curr->type == ENV || curr->type == EXIT_STATUS)
                 && curr->state != IN_QUOTE)
             handle_word_token(curr, exit_code, env_list);
         curr = curr->next;

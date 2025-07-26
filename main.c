@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 20:23:16 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/25 15:04:52 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/26 09:45:59 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,19 @@ int	ft_strcmp(const char *s1, const char *s2)
 	return ((unsigned char)s1[i] - (unsigned char)s2[i]);
 }
 
-// Updated to take env_list parameter
+int	parse_input(t_elem *token, char *input, t_lexer *lexer)
+{
+	(void)lexer;
+	
+	if (!check_unclosed_quotes_in_input(input))
+		return (0);
+	if (!check_syntax(token))
+		return (0);
+	return (1);
+}
+
+
+// Updated to take env_list parameter and include syntax checking
 int process_input(char *input, int *last_exit_code, t_env **env_list)
 {
     t_data data = {0};
@@ -42,12 +54,18 @@ int process_input(char *input, int *last_exit_code, t_env **env_list)
         free(lexer);
         return (0);
     }
-    merge_adjacent_word_tokens(&data.elem);
-    // Updated: Pass env_list to expand_tokens
     
-    // expand_tokens(data.elem, *last_exit_code, *env_list);
+    merge_adjacent_word_tokens(&data.elem);
+    
+    // ADDED: Syntax checking before expansion and execution
+    if (!parse_input(data.elem, input, lexer))
+    {
+        cleanup_resources(&data, lexer, NULL);
+        return (0);
+    }
+    
+    // Expand tokens after syntax validation
     expand_tokens(data.elem, *last_exit_code, data.env_list);
-
     
     if (!parse_pipeline(&data))
     {

@@ -6,7 +6,7 @@
 /*   By: abnemili <abnemili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/13 11:24:50 by abnemili          #+#    #+#             */
-/*   Updated: 2025/07/24 14:22:44 by abnemili         ###   ########.fr       */
+/*   Updated: 2025/07/26 10:03:04 by abnemili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ int	parse_pipeline(t_data *data)
 	return (data->head != NULL);
 }
 
+// Fixed memory cleanup on failure
 t_cmd	*parse_command(t_data *data, t_elem **current)
 {
 	t_cmd	*cmd;
@@ -64,6 +65,8 @@ t_cmd	*parse_command(t_data *data, t_elem **current)
 	cmd->out_file = STDOUT_FILENO;
 	cmd->full_cmd = NULL;
 	cmd->next = NULL;
+	cmd->heredoc_fd = -1;  // Initialize heredoc_fd
+	cmd->heredoc_tmp = NULL;  // Initialize heredoc_tmp
 	if (!parse_arguments(data, current, cmd))
 	{
 		free_cmd(cmd);
@@ -71,3 +74,4 @@ t_cmd	*parse_command(t_data *data, t_elem **current)
 	}
 	return (cmd);
 }
+

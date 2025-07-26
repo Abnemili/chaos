@@ -16,6 +16,7 @@ int	process_word_token(t_data *data, t_elem **current, t_cmd *cmd, int *arg_inde
 	return (1);
 }
 
+// Simplified redirection processing
 int	process_redirection(t_data *data, t_elem **current, t_cmd *cmd)
 {
 	if (!data || !current || !*current || !cmd)
@@ -32,6 +33,7 @@ int	process_redirection(t_data *data, t_elem **current, t_cmd *cmd)
 	return (1);
 }
 
+// Fixed argument parsing with better error handling
 int	parse_arguments(t_data *data, t_elem **current, t_cmd *cmd)
 {
 	int	arg_count;
@@ -48,40 +50,50 @@ int	parse_arguments(t_data *data, t_elem **current, t_cmd *cmd)
 		skip_whitespace_ptr(current);
 		if (!*current || (*current)->type == PIPE_LINE)
 			break;
+		// Handle both WORD and ENV tokens as arguments
+		// 
 		else if ((*current)->type == WORD || (*current)->type == ENV)
+{
+	char *merged = ft_strdup((*current)->content);
+	if (!merged)
+		return (0);
+
+	t_elem *start = *current;
+	t_elem *next = (*current)->next;
+
+	while (next && (next->type == WORD || next->type == ENV))
+	{
+		// Check if there is whitespace between current and next
+		t_elem *tmp = start->next;
+		int separated_by_whitespace = 0;
+		while (tmp && tmp != next)
 		{
-			char *merged = ft_strdup((*current)->content);
-			if (!merged)
-				return (0);
-			t_elem *start = *current;
-			t_elem *next = (*current)->next;
-			while (next && (next->type == WORD || next->type == ENV))
+			if (tmp->type == WHITE_SPACE)
 			{
-				t_elem *tmp = start->next;
-				int separated = 0;
-				while (tmp && tmp != next)
-				{
-					if (tmp->type == WHITE_SPACE)
-					{
-						separated = 1;
-						break;
-					}
-					tmp = tmp->next;
-				}
-				if (separated)
-					break;
-				char *tmp_str = ft_strjoin(merged, next->content);
-				free(merged);
-				if (!tmp_str)
-					return (0);
-				merged = tmp_str;
-				start = next;
-				next = next->next;
+				separated_by_whitespace = 1;
+				break;
 			}
-			if (cmd->full_cmd)
-				cmd->full_cmd[arg_index++] = merged;
-			*current = start->next;
+			tmp = tmp->next;
 		}
+		if (separated_by_whitespace)
+			break;
+
+		char *tmp_str = ft_strjoin(merged, next->content);
+		free(merged);
+		if (!tmp_str)
+			return (0);
+		merged = tmp_str;
+
+		start = next;
+		next = next->next;
+	}
+
+	if (cmd->full_cmd)
+		cmd->full_cmd[arg_index++] = merged;
+
+	*current = start->next;
+}
+
 		else if (!process_redirection(data, current, cmd))
 			return (0);
 	}
